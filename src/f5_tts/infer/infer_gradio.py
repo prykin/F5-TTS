@@ -140,7 +140,7 @@ def infer(
     cross_fade_duration=0.15,
     nfe_step=32,
     speed=1,
-    show_info=gr.Info,
+    show_info=print,
 ):
     if not ref_audio_orig:
         gr.Warning("Please provide reference audio.")
@@ -213,65 +213,64 @@ with gr.Blocks() as app_tts:
     gr.Markdown("# Batched TTS")
     ref_audio_input = gr.Audio(label="Reference Audio", type="filepath")
     with gr.Row():
+        ref_text_input = gr.Textbox(
+            label="Reference Text",
+            info="Leave blank to automatically transcribe the reference audio. If you enter text or upload a file, it will override automatic transcription.",
+            lines=2,
+            scale=4,
+        )
         gen_text_input = gr.Textbox(
             label="Text to Generate",
             lines=10,
             max_lines=40,
             scale=4,
         )
-        gen_text_file = gr.File(label="Load Text to Generate from File (.txt)", file_types=[".txt"], scale=1)
+        #gen_text_file = gr.File(label="Load Text to Generate from File (.txt)", file_types=[".txt"], scale=1)
     generate_btn = gr.Button("Synthesize", variant="primary")
-    with gr.Accordion("Advanced Settings", open=False):
-        with gr.Row():
-            ref_text_input = gr.Textbox(
-                label="Reference Text",
-                info="Leave blank to automatically transcribe the reference audio. If you enter text or upload a file, it will override automatic transcription.",
-                lines=2,
-                scale=4,
-            )
-            ref_text_file = gr.File(label="Load Reference Text from File (.txt)", file_types=[".txt"], scale=1)
-        with gr.Row():
-            randomize_seed = gr.Checkbox(
-                label="Randomize Seed",
-                info="Check to use a random seed for each generation. Uncheck to use the seed specified.",
-                value=True,
-                scale=3,
-            )
-            seed_input = gr.Number(show_label=False, value=0, precision=0, scale=1)
-            with gr.Column(scale=4):
-                remove_silence = gr.Checkbox(
-                    label="Remove Silences",
-                    info="If undesired long silence(s) produced, turn on to automatically detect and crop.",
-                    value=False,
-                )
-        speed_slider = gr.Slider(
-            label="Speed",
-            minimum=0.3,
-            maximum=2.0,
-            value=1.0,
-            step=0.1,
-            info="Adjust the speed of the audio.",
-        )
-        nfe_slider = gr.Slider(
-            label="NFE Steps",
-            minimum=4,
-            maximum=64,
-            value=32,
-            step=2,
-            info="Set the number of denoising steps.",
-        )
-        cross_fade_duration_slider = gr.Slider(
-            label="Cross-Fade Duration (s)",
-            minimum=0.0,
-            maximum=1.0,
-            value=0.15,
-            step=0.01,
-            info="Set the duration of the cross-fade between audio clips.",
-        )
-
+    #with gr.Accordion("Advanced Settings", open=False):
+    #with gr.Row():
+        #ref_text_file = gr.File(label="Load Reference Text from File (.txt)", file_types=[".txt"], scale=1)
     audio_output = gr.Audio(label="Synthesized Audio")
     spectrogram_output = gr.Image(label="Spectrogram")
 
+    with gr.Row():
+        randomize_seed = gr.Checkbox(
+            label="Randomize Seed",
+            info="Check to use a random seed for each generation. Uncheck to use the seed specified.",
+            value=True,
+            scale=3,
+        )
+        seed_input = gr.Number(show_label=False, value=0, precision=0, scale=1)
+        with gr.Column(scale=4):
+            remove_silence = gr.Checkbox(
+                label="Remove Silences",
+                info="If undesired long silence(s) produced, turn on to automatically detect and crop.",
+                value=False,
+            )
+    speed_slider = gr.Slider(
+        label="Speed",
+        minimum=0.3,
+        maximum=2.0,
+        value=1.0,
+        step=0.1,
+        info="Adjust the speed of the audio.",
+    )
+    nfe_slider = gr.Slider(
+        label="NFE Steps",
+        minimum=4,
+        maximum=64,
+        value=32,
+        step=2,
+        info="Set the number of denoising steps.",
+    )
+    cross_fade_duration_slider = gr.Slider(
+        label="Cross-Fade Duration (s)",
+        minimum=0.0,
+        maximum=1.0,
+        value=0.15,
+        step=0.01,
+        info="Set the duration of the cross-fade between audio clips.",
+    )
     @gpu_decorator
     def basic_tts(
         ref_audio_input,
@@ -300,22 +299,22 @@ with gr.Blocks() as app_tts:
         )
         return audio_out, spectrogram_path, ref_text_out, used_seed
 
-    gen_text_file.upload(
-        load_text_from_file,
-        inputs=[gen_text_file],
-        outputs=[gen_text_input],
-    )
+    # gen_text_file.upload(
+    #     load_text_from_file,
+    #     inputs=[gen_text_file],
+    #     outputs=[gen_text_input],
+    # )
 
-    ref_text_file.upload(
-        load_text_from_file,
-        inputs=[ref_text_file],
-        outputs=[ref_text_input],
-    )
+    # ref_text_file.upload(
+    #     load_text_from_file,
+    #     inputs=[ref_text_file],
+    #     outputs=[ref_text_input],
+    # )
 
     ref_audio_input.clear(
         lambda: [None, None],
         None,
-        [ref_text_input, ref_text_file],
+        [ref_text_input]#, ref_text_file],
     )
 
     generate_btn.click(
@@ -744,7 +743,7 @@ Have a conversation with an AI using your reference voice!
 
     @gpu_decorator
     def load_chat_model(chat_model_name):
-        show_info = gr.Info
+        show_info = print
         global chat_model_state, chat_tokenizer_state
         if chat_model_state is not None:
             chat_model_state = None
@@ -943,18 +942,7 @@ with gr.Blocks() as app_credits:
 with gr.Blocks() as app:
     gr.Markdown(
         f"""
-# E2/F5 TTS
-
-This is {"a local web UI for [F5 TTS](https://github.com/SWivid/F5-TTS)" if not USING_SPACES else "an online demo for [F5-TTS](https://github.com/SWivid/F5-TTS)"} with advanced batch processing support. This app supports the following TTS models:
-
-* [F5-TTS](https://arxiv.org/abs/2410.06885) (A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching)
-* [E2 TTS](https://arxiv.org/abs/2406.18009) (Embarrassingly Easy Fully Non-Autoregressive Zero-Shot TTS)
-
-The checkpoints currently support English and Chinese.
-
 If you're having issues, try converting your reference audio to WAV or MP3, clipping it to 12s with  ✂  in the bottom right corner (otherwise might have non-optimal auto-trimmed result).
-
-**NOTE: Reference text will be automatically transcribed with Whisper if not provided. For best results, keep your reference clips short (<12s). Ensure the audio is fully uploaded before generating.**
 """
     )
 

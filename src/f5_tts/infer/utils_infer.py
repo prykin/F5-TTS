@@ -358,6 +358,7 @@ def preprocess_ref_audio_text(ref_audio_orig, ref_text, show_info=print):
             ref_text = _ref_text_cache[audio_hash]
         else:
             show_info("No reference text provided, transcribing reference audio...")
+            raise Exception("... or not. Provide a ref_text")
             ref_text = transcribe(ref_audio)
             # Cache the transcribed text (not caching custom ref_text, enabling users to do manual tweak)
             _ref_text_cache[audio_hash] = ref_text
