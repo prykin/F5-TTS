@@ -1045,6 +1045,8 @@ def vocab_extend(project_name, symbols, model_type):
         ckpt_path = str(cached_path("hf://SWivid/F5-TTS/F5TTS_Base/model_1200000.pt"))
     elif model_type == "E2TTS_Base":
         ckpt_path = str(cached_path("hf://SWivid/E2-TTS/E2TTS_Base/model_1200000.pt"))
+    elif model_type == "F5_RU":
+        ckpt_path = str(cached_path("hf://Misha24-10/F5-TTS_RUSSIAN/F5TTS_v1_Base_v2/model_last_inference.safetensors"))
 
     vocab_size_new = len(miss_symbols)
 
@@ -1446,7 +1448,7 @@ Using the extended model, you can finetune to a new language that is missing sym
 ```""")
 
             exp_name_extend = gr.Radio(
-                label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base"], value="F5TTS_v1_Base"
+                label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base", "F5_RU"], value="F5TTS_v1_Base"
             )
 
             with gr.Row():
@@ -1524,7 +1526,7 @@ The auto-setting is still experimental. Set a large value of epoch if not sure; 
 If you encounter a memory error, try reducing the batch size per GPU to a smaller number.
 ```""")
             with gr.Row():
-                exp_name = gr.Radio(label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base"])
+                exp_name = gr.Radio(label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base", "F5_RU"])
                 tokenizer_file = gr.Textbox(label="Tokenizer File")
                 file_checkpoint_train = gr.Textbox(label="Path to the Pretrained Checkpoint")
 
@@ -1756,7 +1758,7 @@ If you encounter a memory error, try reducing the batch size per GPU to a smalle
 Check the use_ema setting (True or False) for your model to see what works best for you. Set seed to -1 for random.
 ```""")
             exp_name = gr.Radio(
-                label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base"], value="F5TTS_v1_Base"
+                label="Model", choices=["F5TTS_v1_Base", "F5TTS_Base", "E2TTS_Base", "F5_RU"], value="F5TTS_v1_Base"
             )
             list_checkpoints, checkpoint_select = get_checkpoints_project(projects_selelect, False)
 
