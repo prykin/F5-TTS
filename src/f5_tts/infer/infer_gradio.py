@@ -138,7 +138,7 @@ def infer(
     remove_silence,
     seed,
     cross_fade_duration=0.15,
-    nfe_step=32,
+    nfe_step=64,
     speed=1,
     show_info=print,
 ):
@@ -258,8 +258,8 @@ with gr.Blocks() as app_tts:
     nfe_slider = gr.Slider(
         label="NFE Steps",
         minimum=4,
-        maximum=64,
-        value=32,
+        maximum=128,
+        value=64,
         step=2,
         info="Set the number of denoising steps.",
     )
@@ -989,14 +989,14 @@ If you're having issues, try converting your reference audio to WAV or MP3, clip
                 choices=[DEFAULT_TTS_MODEL, "E2-TTS"], label="Choose TTS Model", value=DEFAULT_TTS_MODEL
             )
         custom_ckpt_path = gr.Dropdown(
-            choices=[DEFAULT_TTS_MODEL_CFG[0]],
+            choices=["hf://Misha24-10/F5-TTS_RUSSIAN/F5TTS_v1_Base_v2/model_last_inference.safetensors"],
             value=load_last_used_custom()[0],
             allow_custom_value=True,
             label="Model: local_path | hf://user_id/repo_id/model_ckpt",
             visible=False,
         )
         custom_vocab_path = gr.Dropdown(
-            choices=[DEFAULT_TTS_MODEL_CFG[1]],
+            choices=["hf://Misha24-10/F5-TTS_RUSSIAN/F5TTS_v1_Base/vocab.txt"],
             value=load_last_used_custom()[1],
             allow_custom_value=True,
             label="Vocab: local_path | hf://user_id/repo_id/vocab_file",
@@ -1004,7 +1004,6 @@ If you're having issues, try converting your reference audio to WAV or MP3, clip
         )
         custom_model_cfg = gr.Dropdown(
             choices=[
-                DEFAULT_TTS_MODEL_CFG[2],
                 json.dumps(
                     dict(
                         dim=1024,
@@ -1017,6 +1016,7 @@ If you're having issues, try converting your reference audio to WAV or MP3, clip
                         pe_attn_head=1,
                     )
                 ),
+                DEFAULT_TTS_MODEL_CFG[2],
                 json.dumps(
                     dict(
                         dim=768,
