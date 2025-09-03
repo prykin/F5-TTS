@@ -259,7 +259,7 @@ with gr.Blocks() as app_tts:
         label="NFE Steps",
         minimum=4,
         maximum=128,
-        value=64,
+        value=32,
         step=2,
         info="Set the number of denoising steps.",
     )
@@ -311,11 +311,11 @@ with gr.Blocks() as app_tts:
     #     outputs=[ref_text_input],
     # )
 
-    ref_audio_input.clear(
-        lambda: [None, None],
-        None,
-        [ref_text_input]#, ref_text_file],
-    )
+    # ref_audio_input.clear(
+    #     lambda: [None, None],
+    #     None,
+    #     [ref_text_input]#, ref_text_file],
+    # )
 
     generate_btn.click(
         basic_tts,
