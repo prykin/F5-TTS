@@ -19,6 +19,9 @@ import torchaudio
 from cached_path import cached_path
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from ruaccent import RUAccent
+
+accentizer = None
 
 try:
     import spaces
@@ -141,6 +144,7 @@ def infer(
     nfe_step=64,
     speed=1,
     show_info=print,
+    auto_emphasis=True
 ):
     if not ref_audio_orig:
         gr.Warning("Please provide reference audio.")
@@ -176,6 +180,16 @@ def infer(
             pre_custom_path = model[1]
         ema_model = custom_ema_model
 
+    if auto_emphasis:
+        global accentizer
+        if not accentizer:
+            accentizer = RUAccent()
+            accentizer.load(omograph_model_size='turbo3.1',
+                            use_dictionary=True,
+                            tiny_mode=False,
+                            device="GPU" if torch.cuda.is_available() else "CPU")
+        gen_text = accentizer.process_all(gen_text)
+
     final_wave, final_sample_rate, combined_spectrogram = infer_process(
         ref_audio,
         ref_text,
@@ -206,7 +220,7 @@ def infer(
         spectrogram_path = tmp_spectrogram.name
     save_spectrogram(combined_spectrogram, spectrogram_path)
 
-    return (final_sample_rate, final_wave), spectrogram_path, ref_text, used_seed
+    return (final_sample_rate, final_wave), spectrogram_path, ref_text, used_seed, gen_text
 
 
 with gr.Blocks() as app_tts:
@@ -227,9 +241,12 @@ with gr.Blocks() as app_tts:
         #gen_text_file = gr.File(label="Load Text to Generate from File (.txt)", file_types=[".txt"], scale=1)
         with gr.Column(scale=2):
             generate_btn = gr.Button("Synthesize", variant="primary")
+            auto_emphasis = gr.Checkbox(
+                        label="Auto Emphasis",
+                        value=True,
+                    )
             remove_silence = gr.Checkbox(
                         label="Remove Silences",
-                        info="If undesired long silence(s) produced, turn on to automatically detect and crop.",
                         value=False,
                     )
     #with gr.Accordion("Advanced Settings", open=False):
@@ -281,11 +298,12 @@ with gr.Blocks() as app_tts:
         cross_fade_duration_slider,
         nfe_slider,
         speed_slider,
+        auto_emphasis
     ):
         if randomize_seed:
             seed_input = np.random.randint(0, 2**31 - 1)
 
-        audio_out, spectrogram_path, ref_text_out, used_seed = infer(
+        audio_out, spectrogram_path, ref_text_out, used_seed, gen_text_input = infer(
             ref_audio_input,
             ref_text_input,
             gen_text_input,
@@ -295,8 +313,9 @@ with gr.Blocks() as app_tts:
             cross_fade_duration=cross_fade_duration_slider,
             nfe_step=nfe_slider,
             speed=speed_slider,
+            auto_emphasis=auto_emphasis
         )
-        return audio_out, spectrogram_path, ref_text_out, used_seed
+        return audio_out, spectrogram_path, ref_text_out, used_seed, gen_text_input
 
     # gen_text_file.upload(
     #     load_text_from_file,
@@ -328,8 +347,9 @@ with gr.Blocks() as app_tts:
             cross_fade_duration_slider,
             nfe_slider,
             speed_slider,
+            auto_emphasis
         ],
-        outputs=[audio_output, spectrogram_output, ref_text_input, seed_input],
+        outputs=[audio_output, spectrogram_output, ref_text_input, seed_input, gen_text_input],
     )
 
 
