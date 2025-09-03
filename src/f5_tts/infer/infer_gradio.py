@@ -210,23 +210,28 @@ def infer(
 
 
 with gr.Blocks() as app_tts:
-    gr.Markdown("# Batched TTS")
     ref_audio_input = gr.Audio(label="Reference Audio", type="filepath")
     with gr.Row():
         ref_text_input = gr.Textbox(
             label="Reference Text",
-            info="Leave blank to automatically transcribe the reference audio. If you enter text or upload a file, it will override automatic transcription.",
-            lines=2,
+            lines=4,
+            max_lines=4,
             scale=4,
         )
         gen_text_input = gr.Textbox(
             label="Text to Generate",
-            lines=10,
-            max_lines=40,
+            lines=4,
+            max_lines=4,
             scale=4,
         )
         #gen_text_file = gr.File(label="Load Text to Generate from File (.txt)", file_types=[".txt"], scale=1)
-    generate_btn = gr.Button("Synthesize", variant="primary")
+        with gr.Column(scale=2):
+            generate_btn = gr.Button("Synthesize", variant="primary")
+            remove_silence = gr.Checkbox(
+                        label="Remove Silences",
+                        info="If undesired long silence(s) produced, turn on to automatically detect and crop.",
+                        value=False,
+                    )
     #with gr.Accordion("Advanced Settings", open=False):
     #with gr.Row():
         #ref_text_file = gr.File(label="Load Reference Text from File (.txt)", file_types=[".txt"], scale=1)
@@ -241,12 +246,6 @@ with gr.Blocks() as app_tts:
             scale=3,
         )
         seed_input = gr.Number(show_label=False, value=0, precision=0, scale=1)
-        with gr.Column(scale=4):
-            remove_silence = gr.Checkbox(
-                label="Remove Silences",
-                info="If undesired long silence(s) produced, turn on to automatically detect and crop.",
-                value=False,
-            )
     speed_slider = gr.Slider(
         label="Speed",
         minimum=0.3,
